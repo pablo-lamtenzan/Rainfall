@@ -19,7 +19,7 @@ int main (int ac, char** argv)
 		gid_t gid;					// esp + 0x1c
 
 		argv[0] = strdup(str_bin_sh);	// call + move eax
-		argv[1] = 0x0;				// mv 0x0 into {esp + 14}
+		argv[1] = 0x0;				// mv 0x0 into {esp + 0x14}
 		gid = getegid();			// call + move eax
 		uid = geteuid();			// call + move eax
 		setresgid(gid, gid, gid);	// mv {esp + 0x1c} into the stack 3 times before call
