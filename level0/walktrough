@@ -1,0 +1,32 @@
+
+0) Random tests
+	- With no arguments an invalid memory address is tried to be read or write (SIGSEGV).
+	- With one argument it performs a write on stdout.
+	- With more than one argument the result is the same than with only one.
+
+
+1) Analyse the binary whith gdb
+	- Start analysing the control-flow: jumps and calls.
+
+~$ gdb level0
+~$ set disassembly-flavour intel
+~$ disassemble main
+
+2) Understand the control-flow
+	- We can observe at 0x08048ede a conditional jump from 0x8048f58.
+	- We can observe that this jump is performed only if the zero flag is off.
+	- We can observe at 0x08048f51 a call to execv (the target).
+	- But the conditional jumps after the execv call.
+
+3) Conclude and exploit
+	- If we want a to execute execv the zero flag must be on.
+	- The condition who defines the zero flag checks if the return of atoi (0x8049710) == 0x1a7 (423 in decimal)
+	- So teorically as there aren't more jumps, if atoi returns 0x1a7 execv will be reached by eip later
+	- We can observe that the argument from atoi comes from the stack. Will it be argv ?
+
+
+// Lets tests
+
+~$ ./level0 423
+
+// Yes, I ve a terminal now! With the uid of level1 and the group from level1
