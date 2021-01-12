@@ -8,7 +8,11 @@
 void p()
 {
 	static const char format[] = "(%p)\n"; // 0x8048620 (not in the stack)
-	size_t eip;	// located at {ebp - 0xc}
+
+	size_t eip[3];	// located at {ebp - 0xc}
+					// its size must be 0xc (12) bytes if there aren't more local variables
+					// this is why i defined it as an array
+
 	char buff[64]; 	// {ebp - 0x4c} address is loaded as argument of gets
 					// 0x4c = 76
 					// After gets call, the eip (ebp + 0x4) is move into {ebp - 0xc}
@@ -17,10 +21,10 @@ void p()
 
 	fflush(stdout); // stdout loaded from libc at address 0x8049860
 	gets(buff);
-	eip = (size_t)__builtin_return_address(0); // return {ebp + 4}, the argument indicates the target frame
-	if ((eip & 0xb00000000ul) == 0xb00000000ul)
+	eip[0] = (size_t)__builtin_return_address(0); // return {ebp + 4}, the argument indicates the target frame
+	if ((eip[0] & 0xb00000000ul) == 0xb00000000ul)
 	{
-		printf(format, eip); // takes as argument 0x8048620 and {ebp - 0xc}
+		printf(format, (void*)eip[0]); // takes as argument 0x8048620 and {ebp - 0xc}
 		exit(0x1);
 	}
 	printf(buff); // Compiler optimize the code with puts when there's no string format in printf.

