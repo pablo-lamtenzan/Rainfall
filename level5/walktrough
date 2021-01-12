@@ -1,0 +1,38 @@
+
+0) Random test
+	- Another time is a format string vulnerabilty, stack addresses are leaked
+		if the input is "%x %x %x %x"
+
+1) Inspect binary:
+	- The structure is like the previous 2 levels but systhem funcion is not present
+		in this case. That's not a problem, it seem possible to overwrite the GOT of exit
+		in the function n.
+	
+Lets do this:
+
+Info: GOT table is provided by dinamic linking, is where the addresses of the libs functions
+	are loaded dinamicaly when a function is needed. In this level the addresses of exit will
+	be overwrite to the address of systhem this will make to systhem to be called istead of exit.
+
+I ve just realize there's a function 'o' who calls system, that does not change anything but now i dont need to
+to change the GOT of exit by the address of GOT system and construct a call, the call already contruct.
+Instead, i've just have to change GOT exit by the address of the function 'o'.
+
+The address of GOT exit is: 0x8049838
+~$ gdb level5
+~$ set disassembly-flavour intel
+~$ disassemble n
+~$ disassemble 0x80483d04
+
+The address of o is 0x80484a4
+
+So lets procced like previouslly:
+
+Need to overwrite 134513828
+
+python -c '"\x38\x98\x04\x08"+"%x "*4+"%4$n"'
+
+// to do: same problem as before: just can only analyse statically need to write the right amount of bytes (134513828)
+
+
+
