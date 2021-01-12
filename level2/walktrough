@@ -1,0 +1,17 @@
+
+0) Random tests:
+	- No argument
+	- One argument
+	- More than One
+
+It seems be the same, a function asks for input stdin
+and another function print the given input i can probally
+search for format string exploit or gets or strcpy
+
+1) Binary exploration:
+	- Disassembling the main we can see it call to the function p
+	- Disassembling the function we can see that a call to printf and a exit
+		if printf has a format string vulnerability is possible to overwrite
+		the address of exit with the address of system.
+	- After a fast check with "%x %x %x %x" no address is leaked so lest search
+		for another vulnerability, lets try to exploit gets.
