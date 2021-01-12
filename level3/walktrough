@@ -1,0 +1,37 @@
+
+0) Random test
+	- The arguments are ignored
+	- It just ask for input form stdin and displays what i type
+	- I've think is probable to be a format string vulnerability
+	- I've tried "%x %x %x %x, and yes! Stack addresses are leaked!
+
+1) Analyse the code:
+	- We know what is is vulnerability and how to exploit it, so just
+		need to find some ways to use the vulnerabily to gain control
+		over eip.
+	- While disassembling we can observe that the function v is called by the main
+		in the function v there's already a system call so is not needed to
+		overwrite the GOT table to exploit.
+	- Analysing the control-flow we can observe that systhem is called if
+		0x804998c is equal to 0x40 (64)
+	- We can deduce that 0x804998c is a global variable (init to 0 by dflt)
+		and we must use %n in printf to point to 0x804998c and print 64 bytes
+		to change it value to 64. Easy !
+
+2) Exploit
+
+// To do change in the source.c the name "global" by the true name using strings to find it
+
+1) Write 0x804998c in the stack
+2) Find the correct number of %x needed to print 0x804998c the last
+3) Append a %n
+4) Be careful to aligment
+5) Find the way to only print 64bytes
+
+// To do fck the vm i can't created file and i ve not ssh conection
+// So for the moment the script is
+
+python -c 'print "\x8c\x99\x04\x80"+"%x "*4+"%n"'
+
+// This work nice but just need to display 64 bytes, but need a file to test it easelly
+// If i work on this in the future: try the script before without %n
