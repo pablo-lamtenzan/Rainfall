@@ -1,0 +1,59 @@
+
+0) Random tests
+	- Ok, no more string format xD
+	- If no argument is given a SIGSEGV is raised
+	- With at least one argument the program display "Nope"
+
+1) Reverse binary:
+	- In gdb with "info functions" we can observe that malloc is called
+		could be a heap overflow exploit ? There are 2 functions more than the
+		main 'n' and 'm'.
+	- Checking quickly the execution flow, there are not conditions, strcpy is called
+		and strcpy is vulnerable, i can start with that. In 'm' printf is called we can
+		supose is the "Nope" and in 'n' system is called. So, call 'n' seems to be the
+		goal. In the main a call to eax is performed after strcpy. I supose eax == 'm' by default.
+	- So eax == 'm' means that is a pointer to a function, we can observe the second malloc allocates
+		4 bytes (the size of a pointer in 32bits arch) and the first one allocates 0x40 (64) bytes.
+		Furthermore, the pointer of the second malloc is equal to 0x8048468 ('m').
+		And the pointer of the address allocated in the first malloc (esp + 0x1c) is used as destination
+		parameter in strcpy.
+	- Knowing how malloc algorithm works is easy to find the vulnerability, the idea is overwrite the
+		second malloc overflowing from the first and change the address pointed by the fucntion pointer.
+
+2) Heap explenation:
+
+// I'm simplifying the heap a lot but this are the only knowlegdes needed for this exploit.
+
+// Lest start with an exemple:
+
+void* heap = malloc(0x8);
+
+// The heap looks like that now
+
+[ no needed ] [ size of block ] [ user data ] [ wildness size ]
+
+// The metadata are the first 2 "[ ]" and their size is 4bytes + 4bytes
+// The size of block is the metadata size + the user data and '$size_of_block & 0x1 == true' if the block is been used
+// Next, there is the user data and the size is the requested by the user
+// Finally the last "[ ]" is all the remaining heap size avalaible.
+
+// So lets illustrate this exploit:
+
+char* ptr1 = malloc(0x40);
+void (*fun)() = malloc(0x4);
+
+[ 0x0 (0x4 bytes) ] [ 0x8 + 0x40  + 0x1 (0x4 bytes) ] [ ... (0x40 bytes) ]
+[ 0x0 (0x4 bytes) ] [ 0x8 + 0x4 + 0x1 (0x4 bytes) ] [ ... (0x4 bytes) ] [ wildness size (0x4 bytes) ]
+
+// So, as you can see is possible to overwrite the second one if we overflow the first one.
+
+// Note: Malloc is much complex than that but just this knowledge is needed for this exploit...
+
+3) Exploit:
+	- strcpy allows us to overwrite so is pretty easy!
+	- 0x40 + 0x4 + 0x4 padding is needed, then the address of 'm' can be overwrited by 'n'
+
+./level6 $(python -c 'print "A"*72+"\x54\x84\x04\x08"')
+
+- Note: If the address to overwrite contains a 0x0 byte this exploit will be so much difficult.
+
