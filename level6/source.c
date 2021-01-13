@@ -16,12 +16,14 @@ void n() // 0x8048454
 
 int main(int ac, char** av)
 {
-	void	(*fun)(); // {esp + 0x18}
 	char*	ptr1; // {esp + 0x1c}
+	void	(*fun)(); // {esp + 0x18}
 
 	ptr1 = malloc(sizeof(char) * 0x40); // 64
 	fun = malloc(sizeof(fun)); // 4 bytes in 32bits arch
-	fun = &m;
+	fun = &m; // this line could be wrong and i need a pointer to the function pointer...
+				// fun = (void**)malloc(sizeof(fun));
+				// *fun = m;
 	strcpy(ptr1, av[1]);
 	fun();
 }
