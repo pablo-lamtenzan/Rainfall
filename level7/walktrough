@@ -1,0 +1,33 @@
+0) Random test
+	- No arg SIGSEGV is raised
+	- 1 arg SIGSEGV is raised too
+	- 2 args "~~" is displayed
+	- more than 2 the same
+
+1) Binary analysis
+	- There are another function 'm' not called in the main.
+	- I decided to write all the program in c before search for exploits.
+	- There are 2 structs cointaing an integer and a pointer (sizeof == 0x8),
+		the 4 called mallocs in main are used to allocate both structs and their
+		pointer, this pointer will be the destination parameter of strcpy.
+		After that, fopen and fgets read the password file of level8 and store it data in a global variable.
+		Finally, the fucntion 'm' displays this global variable but it isn't called by the main.
+	- So the goal is to call 'm' and the password will be displayed.
+	- There 2 strcpy, if in the firts one i overflow until the pointer in the 2 second struct,
+		in can replace the address pointed by the address of puts in the GOT table y can with the second strcpy
+		change it by the address of 'm'.
+	- I forgot to say that puts is called at the end of the main, after the password is written in the global variable displayed by m.
+	- Note: This only works if the address of 'm' doesn't contain 0x0 bytes.
+
+3) Explotation
+
+- Need address of 'm': 0x80484f4
+- The address of puts GOT: 0x8049928
+
+- First arg padding is 0x8 (ptr malloc size) + 0x8 (second struct metadata) + 0x4 (second struct integer) = 20
+- Then, in the first argument append the address of GOT puts
+- Second argument must be the address of m
+
+./level7 $(python -c 'print "A"*20+"\x28\x99\x04\x08"') $(echo -ne "\xf4\x84\x04\x08")
+
+- Yeah, first try for this one!
